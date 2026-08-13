@@ -89,4 +89,12 @@ async function updateOrder(req, res) {
   res.json({ order });
 }
 
-module.exports = { listOrders, getOrder, createOrder, updateOrder };
+async function deleteOrder(req, res) {
+  const order = await Order.findByIdAndDelete(req.params.id);
+  if (!order) {
+    return res.status(404).json({ message: 'Order not found' });
+  }
+  res.status(204).send();
+}
+
+module.exports = { listOrders, getOrder, createOrder, updateOrder, deleteOrder };

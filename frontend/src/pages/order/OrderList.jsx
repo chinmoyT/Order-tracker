@@ -15,8 +15,14 @@ import Alert from '@mui/material/Alert';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogActions from '@mui/material/DialogActions';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import api from '../../api/axios';
 
 function formatDate(value) {
@@ -29,15 +35,37 @@ export default function OrderList() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [orderToDelete, setOrderToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const navigate = useNavigate();
 
-  useEffect(() => {
-    api
+  function loadOrders() {
+    setLoading(true);
+    return api
       .get('/orders')
       .then((res) => setOrders(res.data.orders))
       .catch((err) => setError(err.response?.data?.message || 'Failed to load orders'))
       .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    loadOrders();
   }, []);
+
+  async function handleConfirmDelete() {
+    setDeleteError('');
+    setDeleting(true);
+    try {
+      await api.delete(`/orders/${orderToDelete._id}`);
+      setOrderToDelete(null);
+      await loadOrders();
+    } catch (err) {
+      setDeleteError(err.response?.data?.message || 'Failed to delete order');
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   return (
     <Box>
@@ -101,6 +129,11 @@ export default function OrderList() {
                           <EditIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton onClick={() => setOrderToDelete(order)}>
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
                     </TableCell>
                   </TableRow>
                 ))
@@ -109,6 +142,25 @@ export default function OrderList() {
           </Table>
         </TableContainer>
       )}
+
+      <Dialog open={Boolean(orderToDelete)} onClose={() => setOrderToDelete(null)}>
+        <DialogTitle>Delete Order</DialogTitle>
+        <DialogContent>
+          {deleteError && <Alert severity="error" sx={{ mb: 2 }}>{deleteError}</Alert>}
+          <DialogContentText>
+            Are you sure you want to delete the order for "{orderToDelete?.vendorName}"
+            {orderToDelete ? ` (${formatDate(orderToDelete.orderDate)})` : ''}? This cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOrderToDelete(null)} disabled={deleting}>
+            Cancel
+          </Button>
+          <Button onClick={handleConfirmDelete} color="error" variant="contained" disabled={deleting}>
+            {deleting ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
