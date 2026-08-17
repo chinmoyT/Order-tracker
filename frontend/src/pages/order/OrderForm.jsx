@@ -21,7 +21,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import api from '../../api/axios';
 
-const emptyItem = { category: '', item: '', bags: '' };
+const emptyItem = { category: '', item: '', bags: '', bagSize: '50kg' };
 
 export default function OrderForm({
   title,
@@ -37,7 +37,9 @@ export default function OrderForm({
   const [salesmen, setSalesmen] = useState([]);
   const [salesmanName, setSalesmanName] = useState(initialValues.salesmanName || '');
   const [items, setItems] = useState(
-    initialValues.items?.length ? initialValues.items.map((it) => ({ ...it, bags: String(it.bags) })) : [{ ...emptyItem }]
+    initialValues.items?.length
+      ? initialValues.items.map((it) => ({ ...it, bags: String(it.bags), bagSize: it.bagSize || '50kg' }))
+      : [{ ...emptyItem }]
   );
   const [status, setStatus] = useState(initialValues.status || 'pending');
   const [error, setError] = useState('');
@@ -71,6 +73,14 @@ export default function OrderForm({
     () => items.reduce((sum, it) => sum + (Number(it.bags) || 0), 0),
     [items]
   );
+
+  const totalWeightTonnes = useMemo(() => {
+    const totalKg = items.reduce((sum, it) => {
+      const sizeKg = it.bagSize === '25kg' ? 25 : 50;
+      return sum + (Number(it.bags) || 0) * sizeKg;
+    }, 0);
+    return totalKg / 1000;
+  }, [items]);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -201,6 +211,7 @@ export default function OrderForm({
                     <TableCell>Category</TableCell>
                     <TableCell>Item</TableCell>
                     <TableCell width={120}>Bags</TableCell>
+                    <TableCell width={110}>Bag Size</TableCell>
                     <TableCell width={48} />
                   </TableRow>
                 </TableHead>
@@ -236,6 +247,17 @@ export default function OrderForm({
                         />
                       </TableCell>
                       <TableCell>
+                        <Select
+                          size="small"
+                          fullWidth
+                          value={it.bagSize || '50kg'}
+                          onChange={(e) => updateItem(index, 'bagSize', e.target.value)}
+                        >
+                          <MenuItem value="50kg">50kg</MenuItem>
+                          <MenuItem value="25kg">25kg</MenuItem>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
                         <IconButton
                           size="small"
                           onClick={() => removeItemRow(index)}
@@ -247,11 +269,19 @@ export default function OrderForm({
                     </TableRow>
                   ))}
                   <TableRow>
-                    <TableCell colSpan={2} align="right">
+                    <TableCell colSpan={3} align="right">
                       <Typography variant="subtitle2">Total Bags</Typography>
                     </TableCell>
                     <TableCell colSpan={2}>
                       <Typography variant="subtitle2">{totalBags}</Typography>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell colSpan={3} align="right">
+                      <Typography variant="subtitle2">Total Weight</Typography>
+                    </TableCell>
+                    <TableCell colSpan={2}>
+                      <Typography variant="subtitle2">{totalWeightTonnes.toFixed(2)} tonnes</Typography>
                     </TableCell>
                   </TableRow>
                 </TableBody>

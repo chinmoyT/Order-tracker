@@ -10,15 +10,20 @@ function cleanItems(items) {
     const category = (raw.category || '').trim();
     const item = (raw.item || '').trim();
     const bags = Number(raw.bags);
+    const bagSize = raw.bagSize === '25kg' ? '25kg' : '50kg';
 
     if (!category || !item || !Number.isFinite(bags) || bags < 0) {
       return { error: 'Each item needs a category, item and a valid bags count' };
     }
 
-    cleanedItems.push({ category, item, bags });
+    cleanedItems.push({ category, item, bags, bagSize });
   }
 
   return { cleanedItems };
+}
+
+function totalWeightKgOf(cleanedItems) {
+  return cleanedItems.reduce((sum, i) => sum + i.bags * (i.bagSize === '25kg' ? 25 : 50), 0);
 }
 
 async function listOrders(req, res) {
@@ -47,6 +52,7 @@ async function createOrder(req, res) {
   }
 
   const totalBags = cleanedItems.reduce((sum, i) => sum + i.bags, 0);
+  const totalWeightKg = totalWeightKgOf(cleanedItems);
 
   const order = await Order.create({
     orderDate,
@@ -54,6 +60,7 @@ async function createOrder(req, res) {
     salesmanName,
     items: cleanedItems,
     totalBags,
+    totalWeightKg,
   });
 
   res.status(201).json({ order });
@@ -76,10 +83,11 @@ async function updateOrder(req, res) {
   }
 
   const totalBags = cleanedItems.reduce((sum, i) => sum + i.bags, 0);
+  const totalWeightKg = totalWeightKgOf(cleanedItems);
 
   const order = await Order.findByIdAndUpdate(
     req.params.id,
-    { orderDate, vendorName, salesmanName, items: cleanedItems, totalBags, ...(status && { status }) },
+    { orderDate, vendorName, salesmanName, items: cleanedItems, totalBags, totalWeightKg, ...(status && { status }) },
     { new: true, runValidators: true }
   );
 
