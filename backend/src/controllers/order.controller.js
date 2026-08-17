@@ -26,9 +26,18 @@ function totalWeightKgOf(cleanedItems) {
   return cleanedItems.reduce((sum, i) => sum + i.bags * (i.bagSize === '25kg' ? 25 : 50), 0);
 }
 
+// Older orders saved before bag size/weight tracking existed don't have totalWeightKg
+// stored — fall back to computing it from their items so every order returns a valid value.
+function withWeightFallback(order) {
+  if (typeof order.totalWeightKg === 'number') {
+    return order;
+  }
+  return { ...order, totalWeightKg: totalWeightKgOf(order.items || []) };
+}
+
 async function listOrders(req, res) {
   const orders = await Order.find().sort({ createdAt: -1 });
-  res.json({ orders });
+  res.json({ orders: orders.map((o) => withWeightFallback(o.toObject())) });
 }
 
 async function getOrder(req, res) {
@@ -36,7 +45,7 @@ async function getOrder(req, res) {
   if (!order) {
     return res.status(404).json({ message: 'Order not found' });
   }
-  res.json({ order });
+  res.json({ order: withWeightFallback(order.toObject()) });
 }
 
 async function createOrder(req, res) {

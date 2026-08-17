@@ -32,6 +32,8 @@ const CATEGORY_OPTIONS = [
   'Desi',
   'Sonali',
   'Counter',
+  'Sinking',
+  'Floating'
 ];
 
 export default function OrderForm({

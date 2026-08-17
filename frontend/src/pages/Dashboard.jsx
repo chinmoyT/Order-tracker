@@ -30,6 +30,7 @@ export default function Dashboard() {
             location: locationByVendor.get(order.vendorName) || '—',
             salesmanName: order.salesmanName,
             totalBags: order.totalBags,
+            totalWeightTonnes: order.totalWeightKg / 1000,
           }));
         setCards(pending);
       })
@@ -85,7 +86,9 @@ export default function Dashboard() {
                   )}
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <Inventory2Icon fontSize="small" color="action" />
-                    <Typography variant="body2">{card.totalBags} bags</Typography>
+                    <Typography variant="body2">
+                      {card.totalBags} bags · {card.totalWeightTonnes.toFixed(2)} tonnes
+                    </Typography>
                   </Box>
                 </CardContent>
               </CardActionArea>
