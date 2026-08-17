@@ -23,6 +23,17 @@ import api from '../../api/axios';
 
 const emptyItem = { category: '', item: '', bags: '', bagSize: '50kg' };
 
+const CATEGORY_OPTIONS = [
+  'Broiler 1.5',
+  'Broiler 1.6',
+  'Cattle',
+  'Pig SP',
+  'Pig P',
+  'Desi',
+  'Sonali',
+  'Counter',
+];
+
 export default function OrderForm({
   title,
   initialValues,
@@ -231,13 +242,25 @@ export default function OrderForm({
                   {items.map((it, index) => (
                     <TableRow key={index}>
                       <TableCell>
-                        <TextField
+                        <Select
                           size="small"
                           fullWidth
-                          placeholder="e.g. Broiler"
+                          displayEmpty
                           value={it.category}
                           onChange={(e) => updateItem(index, 'category', e.target.value)}
-                        />
+                        >
+                          <MenuItem value="">
+                            <em>Select</em>
+                          </MenuItem>
+                          {it.category && !CATEGORY_OPTIONS.includes(it.category) && (
+                            <MenuItem value={it.category}>{it.category}</MenuItem>
+                          )}
+                          {CATEGORY_OPTIONS.map((option) => (
+                            <MenuItem key={option} value={option}>
+                              {option}
+                            </MenuItem>
+                          ))}
+                        </Select>
                       </TableCell>
                       <TableCell>
                         <TextField
