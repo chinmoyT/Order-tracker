@@ -42,6 +42,7 @@ export default function OrderForm({
       : [{ ...emptyItem }]
   );
   const [status, setStatus] = useState(initialValues.status || 'pending');
+  const [dispatchedOn, setDispatchedOn] = useState(initialValues.dispatchedOn || '');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -114,7 +115,7 @@ export default function OrderForm({
         vendorName,
         salesmanName,
         items: cleanedItems.map((it) => ({ ...it, bags: Number(it.bags) })),
-        ...(showStatus && { status }),
+        ...(showStatus && { status, dispatchedOn: dispatchedOn || null }),
       });
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to save order');
@@ -198,6 +199,17 @@ export default function OrderForm({
                   <MenuItem value="dispatched">Dispatched</MenuItem>
                 </Select>
               </FormControl>
+            )}
+
+            {showStatus && (
+              <TextField
+                label="Dispatched On"
+                type="date"
+                fullWidth
+                value={dispatchedOn}
+                onChange={(e) => setDispatchedOn(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              />
             )}
 
             <Typography variant="subtitle1" sx={{ mt: 1 }}>

@@ -15,13 +15,14 @@ export default function OrderEdit() {
     api
       .get(`/orders/${id}`)
       .then((res) => {
-        const { orderDate, vendorName, salesmanName, items, status } = res.data.order;
+        const { orderDate, vendorName, salesmanName, items, status, dispatchedOn } = res.data.order;
         setInitialValues({
           orderDate: orderDate.slice(0, 10),
           vendorName,
           salesmanName,
           items,
           status,
+          dispatchedOn: dispatchedOn ? dispatchedOn.slice(0, 10) : '',
         });
       })
       .catch((err) => setLoadError(err.response?.data?.message || 'Failed to load order'));

@@ -67,7 +67,7 @@ async function createOrder(req, res) {
 }
 
 async function updateOrder(req, res) {
-  const { orderDate, vendorName, salesmanName, items, status } = req.body;
+  const { orderDate, vendorName, salesmanName, items, status, dispatchedOn } = req.body;
 
   if (!orderDate || !vendorName) {
     return res.status(400).json({ message: 'orderDate and vendorName are required' });
@@ -87,7 +87,16 @@ async function updateOrder(req, res) {
 
   const order = await Order.findByIdAndUpdate(
     req.params.id,
-    { orderDate, vendorName, salesmanName, items: cleanedItems, totalBags, totalWeightKg, ...(status && { status }) },
+    {
+      orderDate,
+      vendorName,
+      salesmanName,
+      items: cleanedItems,
+      totalBags,
+      totalWeightKg,
+      dispatchedOn: dispatchedOn || null,
+      ...(status && { status }),
+    },
     { new: true, runValidators: true }
   );
 
