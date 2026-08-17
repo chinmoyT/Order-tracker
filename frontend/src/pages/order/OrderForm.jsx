@@ -56,11 +56,16 @@ export default function OrderForm({
   const [dispatchedOn, setDispatchedOn] = useState(initialValues.dispatchedOn || '');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [itemCountInput, setItemCountInput] = useState(String(items.length));
 
   useEffect(() => {
     api.get('/vendors').then((res) => setVendors(res.data.vendors)).catch(() => setVendors([]));
     api.get('/salesmen').then((res) => setSalesmen(res.data.salesmen)).catch(() => setSalesmen([]));
   }, []);
+
+  useEffect(() => {
+    setItemCountInput(String(items.length));
+  }, [items.length]);
 
   function handleVendorChange(e) {
     const name = e.target.value;
@@ -79,6 +84,26 @@ export default function OrderForm({
 
   function removeItemRow(index) {
     setItems((prev) => (prev.length > 1 ? prev.filter((_, i) => i !== index) : prev));
+  }
+
+  function applyItemCount(rawValue) {
+    const count = Math.max(1, parseInt(rawValue, 10) || 1);
+    setItems((prev) => {
+      if (count === prev.length) return prev;
+
+      if (count > prev.length) {
+        return [...prev, ...Array.from({ length: count - prev.length }, () => ({ ...emptyItem }))];
+      }
+
+      let removable = 0;
+      for (let i = prev.length - 1; i >= count; i--) {
+        const it = prev[i];
+        const isEmpty = !it.category && !it.item && it.bags === '';
+        if (!isEmpty) break;
+        removable++;
+      }
+      return prev.slice(0, Math.max(count, prev.length - removable));
+    });
   }
 
   const totalBags = useMemo(
@@ -223,9 +248,35 @@ export default function OrderForm({
               />
             )}
 
-            <Typography variant="subtitle1" sx={{ mt: 1 }}>
-              Items
-            </Typography>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: { xs: 'flex-start', sm: 'center' },
+                justifyContent: 'space-between',
+                gap: 1,
+                mt: 1,
+              }}
+            >
+              <Typography variant="subtitle1">Items</Typography>
+              <TextField
+                label="Number of Items"
+                type="number"
+                size="small"
+                sx={{ width: 160 }}
+                inputProps={{ min: 1 }}
+                value={itemCountInput}
+                onChange={(e) => setItemCountInput(e.target.value)}
+                onBlur={(e) => applyItemCount(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    applyItemCount(e.currentTarget.value);
+                  }
+                }}
+                helperText="Sets how many item rows are below"
+              />
+            </Box>
 
             <TableContainer component={Paper} variant="outlined">
               <Table size="small">
