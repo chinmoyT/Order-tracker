@@ -100,13 +100,14 @@ export default function OrderList() {
                 <TableCell>Vendor Name</TableCell>
                 <TableCell>Salesman Name</TableCell>
                 <TableCell>Status</TableCell>
+                <TableCell>Dispatched On</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {orders.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} align="center">
+                  <TableCell colSpan={6} align="center">
                     No orders yet.
                   </TableCell>
                 </TableRow>
@@ -123,6 +124,7 @@ export default function OrderList() {
                         size="small"
                       />
                     </TableCell>
+                    <TableCell>{formatDate(order.dispatchedOn)}</TableCell>
                     <TableCell align="right">
                       <Tooltip title="Edit">
                         <IconButton onClick={() => navigate(`/orders/${order._id}/edit`)}>
