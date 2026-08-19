@@ -10,6 +10,7 @@ import Alert from '@mui/material/Alert';
 import PlaceIcon from '@mui/icons-material/Place';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
 import BadgeIcon from '@mui/icons-material/Badge';
+import NotesIcon from '@mui/icons-material/Notes';
 import api from '../api/axios';
 
 export default function Dashboard() {
@@ -29,6 +30,7 @@ export default function Dashboard() {
             partyName: order.vendorName,
             location: locationByVendor.get(order.vendorName) || '—',
             salesmanName: order.salesmanName,
+            note: order.note,
             totalBags: order.totalBags,
             totalWeightTonnes: order.totalWeightKg / 1000,
           }));
@@ -90,6 +92,14 @@ export default function Dashboard() {
                       {card.totalBags} bags · {card.totalWeightTonnes.toFixed(2)} tonnes
                     </Typography>
                   </Box>
+                  {card.note && (
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5, mt: 1 }}>
+                      <NotesIcon fontSize="small" color="action" sx={{ mt: '2px' }} />
+                      <Typography variant="body2" color="text.secondary">
+                        {card.note}
+                      </Typography>
+                    </Box>
+                  )}
                 </CardContent>
               </CardActionArea>
             </Card>

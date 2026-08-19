@@ -49,7 +49,7 @@ async function getOrder(req, res) {
 }
 
 async function createOrder(req, res) {
-  const { orderDate, vendorName, salesmanName, items } = req.body;
+  const { orderDate, vendorName, salesmanName, note, items } = req.body;
 
   if (!orderDate || !vendorName) {
     return res.status(400).json({ message: 'orderDate and vendorName are required' });
@@ -67,6 +67,7 @@ async function createOrder(req, res) {
     orderDate,
     vendorName,
     salesmanName,
+    note,
     items: cleanedItems,
     totalBags,
     totalWeightKg,
@@ -76,7 +77,7 @@ async function createOrder(req, res) {
 }
 
 async function updateOrder(req, res) {
-  const { orderDate, vendorName, salesmanName, items, status, dispatchedOn } = req.body;
+  const { orderDate, vendorName, salesmanName, note, items, status, dispatchedOn } = req.body;
 
   if (!orderDate || !vendorName) {
     return res.status(400).json({ message: 'orderDate and vendorName are required' });
@@ -100,6 +101,7 @@ async function updateOrder(req, res) {
       orderDate,
       vendorName,
       salesmanName,
+      note,
       items: cleanedItems,
       totalBags,
       totalWeightKg,

@@ -15,6 +15,7 @@ const orderSchema = new mongoose.Schema(
     orderDate: { type: Date, required: true },
     vendorName: { type: String, required: true, trim: true },
     salesmanName: { type: String, trim: true },
+    note: { type: String, trim: true },
     items: {
       type: [orderItemSchema],
       validate: {

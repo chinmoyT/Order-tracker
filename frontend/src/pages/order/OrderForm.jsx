@@ -49,6 +49,7 @@ export default function OrderForm({
   const [vendorName, setVendorName] = useState(initialValues.vendorName);
   const [salesmen, setSalesmen] = useState([]);
   const [salesmanName, setSalesmanName] = useState(initialValues.salesmanName || '');
+  const [note, setNote] = useState(initialValues.note || '');
   const [items, setItems] = useState(
     initialValues.items?.length
       ? initialValues.items.map((it) => ({ ...it, bags: String(it.bags), bagSize: it.bagSize || '50kg' }))
@@ -152,6 +153,7 @@ export default function OrderForm({
         orderDate,
         vendorName,
         salesmanName,
+        note,
         items: cleanedItems.map((it) => ({ ...it, bags: Number(it.bags) })),
         ...(showStatus && { status, dispatchedOn: dispatchedOn || null }),
       });
@@ -223,6 +225,15 @@ export default function OrderForm({
                 ))}
               </Select>
             </FormControl>
+
+            <TextField
+              label="Note"
+              multiline
+              minRows={2}
+              fullWidth
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
 
             {showStatus && (
               <FormControl fullWidth>
