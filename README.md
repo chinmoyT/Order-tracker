@@ -32,9 +32,9 @@ Login with the seeded admin credentials (`SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWO
 
 ## Deployment
 
-The backend is a normal Express server (not serverless-friendly), so it deploys to a host that
-runs a persistent Node process — e.g. **Render**. The frontend is a static Vite build, which
-deploys well to **Vercel**.
+Both the backend and frontend deploy to **Vercel**. The backend runs as a Vercel serverless
+function (`backend/api/index.js` wraps the Express app; `src/config/db.js` caches the Mongo
+connection across warm invocations). The frontend is a static Vite build.
 
 ### 1. Push to GitHub
 
@@ -43,34 +43,32 @@ git remote add origin <your-github-repo-url>
 git push -u origin master
 ```
 
-### 2. Backend on Render
+### 2. Backend on Vercel
 
-1. [render.com](https://render.com) → New → Web Service → connect your GitHub repo.
+1. [vercel.com](https://vercel.com) → Add New → Project → import the GitHub repo.
 2. **Root Directory**: `backend`
-3. **Build Command**: `npm install`
-4. **Start Command**: `npm start`
-5. Environment variables (Render dashboard → Environment):
+3. Framework preset: **Other**. Vercel picks up `backend/vercel.json`, which routes all
+   requests to the `api/index.js` serverless function — no build command needed.
+4. Environment variables (Project Settings → Environment Variables):
    - `MONGODB_URI` — your Atlas connection string
    - `JWT_SECRET` — a long random value (don't reuse the local dev one)
-   - `CORS_ORIGIN` — your Vercel frontend URL once you have it (e.g. `https://your-app.vercel.app`); comma-separate multiple origins
-   - `PORT` — Render sets this automatically, no need to add it
-6. After the first deploy, run the admin seed once, either via Render's Shell tab (`npm run seed:admin`
-   with `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD` env vars set) or by running it locally against the
-   production `MONGODB_URI`.
-7. Note the deployed URL (e.g. `https://ef-orders-backend.onrender.com`).
+   - `CORS_ORIGIN` — your frontend's Vercel URL once you have it (e.g. `https://your-app.vercel.app`); comma-separate multiple origins
+5. Deploy. Note the deployed URL (e.g. `https://ef-orders-backend.vercel.app`).
+6. Run the admin seed once against the production database — locally, with `MONGODB_URI` in
+   `backend/.env` pointed at Atlas: `npm run seed:admin`. (Serverless functions don't have a
+   shell tab to run one-off scripts in, unlike Render.)
 
 ### 3. Frontend on Vercel
 
-1. [vercel.com](https://vercel.com) → Add New → Project → import the same GitHub repo.
+1. [vercel.com](https://vercel.com) → Add New → Project → import the same GitHub repo (as a
+   second project).
 2. **Root Directory**: `frontend`
 3. Framework preset: Vite (auto-detected). Build command `npm run build`, output `dist` (defaults).
-4. Environment variable: `VITE_API_URL` = `https://<your-render-backend-url>/api`
+4. Environment variable: `VITE_API_URL` = `https://<your-backend-vercel-url>/api`
 5. Deploy. `frontend/vercel.json` already adds the SPA rewrite so client-side routes
    (e.g. `/vendors`, `/orders/123/edit`) work on refresh/direct load.
 
 ### 4. Wire CORS back up
 
-Once you know the Vercel URL, set `CORS_ORIGIN` on Render to that exact URL (redeploy isn't required —
-Render picks up env var changes on the next restart, which happens automatically when you save them).
-
-Render's free tier spins down after inactivity, so the first request after idle can take ~30s+ to wake up.
+Once you know the frontend's Vercel URL, set `CORS_ORIGIN` on the backend project to that exact
+URL and redeploy (Vercel env var changes require a redeploy to take effect, unlike Render).
