@@ -17,6 +17,9 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import IconButton from '@mui/material/IconButton';
+import Divider from '@mui/material/Divider';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import api from '../../api/axios';
@@ -60,6 +63,8 @@ export default function OrderForm({
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [itemCountInput, setItemCountInput] = useState(String(items.length));
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     api.get('/vendors').then((res) => setVendors(res.data.vendors)).catch(() => setVendors([]));
@@ -121,6 +126,69 @@ export default function OrderForm({
     }, 0);
     return totalKg / 1000;
   }, [items]);
+
+  function renderCategoryField(it, index) {
+    return (
+      <Select
+        size="small"
+        fullWidth
+        displayEmpty
+        value={it.category}
+        onChange={(e) => updateItem(index, 'category', e.target.value)}
+      >
+        <MenuItem value="">
+          <em>Select</em>
+        </MenuItem>
+        {it.category && !CATEGORY_OPTIONS.includes(it.category) && (
+          <MenuItem value={it.category}>{it.category}</MenuItem>
+        )}
+        {CATEGORY_OPTIONS.map((option) => (
+          <MenuItem key={option} value={option}>
+            {option}
+          </MenuItem>
+        ))}
+      </Select>
+    );
+  }
+
+  function renderItemField(it, index) {
+    return (
+      <TextField
+        size="small"
+        fullWidth
+        placeholder="e.g. Pre starter"
+        value={it.item}
+        onChange={(e) => updateItem(index, 'item', e.target.value)}
+      />
+    );
+  }
+
+  function renderBagsField(it, index) {
+    return (
+      <TextField
+        size="small"
+        fullWidth
+        type="number"
+        inputProps={{ min: 0 }}
+        value={it.bags}
+        onChange={(e) => updateItem(index, 'bags', e.target.value)}
+      />
+    );
+  }
+
+  function renderBagSizeField(it, index) {
+    return (
+      <Select
+        size="small"
+        fullWidth
+        value={it.bagSize || '50kg'}
+        onChange={(e) => updateItem(index, 'bagSize', e.target.value)}
+      >
+        <MenuItem value="50kg">50kg</MenuItem>
+        <MenuItem value="25kg">25kg</MenuItem>
+      </Select>
+    );
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -291,72 +359,15 @@ export default function OrderForm({
               />
             </Box>
 
-            <TableContainer component={Paper} variant="outlined">
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Category</TableCell>
-                    <TableCell>Item</TableCell>
-                    <TableCell width={120}>Bags</TableCell>
-                    <TableCell width={110}>Bag Size</TableCell>
-                    <TableCell width={48} />
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {items.map((it, index) => (
-                    <TableRow key={index}>
-                      <TableCell>
-                        <Select
-                          size="small"
-                          fullWidth
-                          displayEmpty
-                          value={it.category}
-                          onChange={(e) => updateItem(index, 'category', e.target.value)}
-                        >
-                          <MenuItem value="">
-                            <em>Select</em>
-                          </MenuItem>
-                          {it.category && !CATEGORY_OPTIONS.includes(it.category) && (
-                            <MenuItem value={it.category}>{it.category}</MenuItem>
-                          )}
-                          {CATEGORY_OPTIONS.map((option) => (
-                            <MenuItem key={option} value={option}>
-                              {option}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </TableCell>
-                      <TableCell>
-                        <TextField
-                          size="small"
-                          fullWidth
-                          placeholder="e.g. Pre starter"
-                          value={it.item}
-                          onChange={(e) => updateItem(index, 'item', e.target.value)}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <TextField
-                          size="small"
-                          fullWidth
-                          type="number"
-                          inputProps={{ min: 0 }}
-                          value={it.bags}
-                          onChange={(e) => updateItem(index, 'bags', e.target.value)}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          size="small"
-                          fullWidth
-                          value={it.bagSize || '50kg'}
-                          onChange={(e) => updateItem(index, 'bagSize', e.target.value)}
-                        >
-                          <MenuItem value="50kg">50kg</MenuItem>
-                          <MenuItem value="25kg">25kg</MenuItem>
-                        </Select>
-                      </TableCell>
-                      <TableCell>
+            {isMobile ? (
+              <Stack spacing={1.5}>
+                {items.map((it, index) => (
+                  <Paper key={index} variant="outlined" sx={{ p: 1.5 }}>
+                    <Stack spacing={1.5}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Typography variant="caption" color="text.secondary">
+                          Item {index + 1}
+                        </Typography>
                         <IconButton
                           size="small"
                           onClick={() => removeItemRow(index)}
@@ -364,28 +375,79 @@ export default function OrderForm({
                         >
                           <DeleteIcon fontSize="small" />
                         </IconButton>
+                      </Box>
+                      {renderCategoryField(it, index)}
+                      {renderItemField(it, index)}
+                      <Stack direction="row" spacing={1.5}>
+                        <Box sx={{ flex: 1 }}>{renderBagsField(it, index)}</Box>
+                        <Box sx={{ flex: 1 }}>{renderBagSizeField(it, index)}</Box>
+                      </Stack>
+                    </Stack>
+                  </Paper>
+                ))}
+
+                <Paper variant="outlined" sx={{ p: 1.5 }}>
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="subtitle2">Total Bags</Typography>
+                    <Typography variant="subtitle2">{totalBags}</Typography>
+                  </Stack>
+                  <Divider sx={{ my: 1 }} />
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="subtitle2">Total Weight</Typography>
+                    <Typography variant="subtitle2">{totalWeightTonnes.toFixed(2)} tonnes</Typography>
+                  </Stack>
+                </Paper>
+              </Stack>
+            ) : (
+              <TableContainer component={Paper} variant="outlined">
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Category</TableCell>
+                      <TableCell>Item</TableCell>
+                      <TableCell width={120}>Bags</TableCell>
+                      <TableCell width={110}>Bag Size</TableCell>
+                      <TableCell width={48} />
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {items.map((it, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{renderCategoryField(it, index)}</TableCell>
+                        <TableCell>{renderItemField(it, index)}</TableCell>
+                        <TableCell>{renderBagsField(it, index)}</TableCell>
+                        <TableCell>{renderBagSizeField(it, index)}</TableCell>
+                        <TableCell>
+                          <IconButton
+                            size="small"
+                            onClick={() => removeItemRow(index)}
+                            disabled={items.length === 1}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    <TableRow>
+                      <TableCell colSpan={3} align="right">
+                        <Typography variant="subtitle2">Total Bags</Typography>
+                      </TableCell>
+                      <TableCell colSpan={2}>
+                        <Typography variant="subtitle2">{totalBags}</Typography>
                       </TableCell>
                     </TableRow>
-                  ))}
-                  <TableRow>
-                    <TableCell colSpan={3} align="right">
-                      <Typography variant="subtitle2">Total Bags</Typography>
-                    </TableCell>
-                    <TableCell colSpan={2}>
-                      <Typography variant="subtitle2">{totalBags}</Typography>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell colSpan={3} align="right">
-                      <Typography variant="subtitle2">Total Weight</Typography>
-                    </TableCell>
-                    <TableCell colSpan={2}>
-                      <Typography variant="subtitle2">{totalWeightTonnes.toFixed(2)} tonnes</Typography>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
+                    <TableRow>
+                      <TableCell colSpan={3} align="right">
+                        <Typography variant="subtitle2">Total Weight</Typography>
+                      </TableCell>
+                      <TableCell colSpan={2}>
+                        <Typography variant="subtitle2">{totalWeightTonnes.toFixed(2)} tonnes</Typography>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            )}
 
             <Button startIcon={<AddIcon />} onClick={addItemRow} sx={{ alignSelf: 'flex-start' }}>
               Add Item
