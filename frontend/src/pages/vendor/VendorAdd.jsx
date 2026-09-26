@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios';
 import VendorForm from './VendorForm';
 
-const emptyForm = { name: '', location: '', salesman: '', contactNumber: '' };
+const emptyForm = { name: '', location: '', salesman: '', contactNumber: '', balanceDue: '' };
 
 export default function VendorAdd() {
   const [form, setForm] = useState(emptyForm);

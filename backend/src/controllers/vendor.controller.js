@@ -13,19 +13,33 @@ async function getVendor(req, res) {
   res.json({ vendor });
 }
 
+function parseBalanceDue(raw) {
+  if (raw === undefined || raw === null || raw === '') {
+    return 0;
+  }
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : 0;
+}
+
 async function createVendor(req, res) {
-  const { name, location, salesman, contactNumber } = req.body;
+  const { name, location, salesman, contactNumber, balanceDue } = req.body;
 
   if (!name || !location) {
     return res.status(400).json({ message: 'name and location are required' });
   }
 
-  const vendor = await Vendor.create({ name, location, salesman, contactNumber });
+  const vendor = await Vendor.create({
+    name,
+    location,
+    salesman,
+    contactNumber,
+    balanceDue: parseBalanceDue(balanceDue),
+  });
   res.status(201).json({ vendor });
 }
 
 async function updateVendor(req, res) {
-  const { name, location, salesman, contactNumber } = req.body;
+  const { name, location, salesman, contactNumber, balanceDue } = req.body;
 
   if (!name || !location) {
     return res.status(400).json({ message: 'name and location are required' });
@@ -33,7 +47,7 @@ async function updateVendor(req, res) {
 
   const vendor = await Vendor.findByIdAndUpdate(
     req.params.id,
-    { name, location, salesman, contactNumber },
+    { name, location, salesman, contactNumber, balanceDue: parseBalanceDue(balanceDue) },
     { new: true, runValidators: true }
   );
 

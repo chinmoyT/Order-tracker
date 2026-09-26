@@ -10,6 +10,8 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
+import Divider from '@mui/material/Divider';
+import InputAdornment from '@mui/material/InputAdornment';
 import api from '../../api/axios';
 
 export default function VendorForm({ title, form, onChange, onSubmit, onCancel, error, submitting, submitLabel }) {
@@ -78,6 +80,24 @@ export default function VendorForm({ title, form, onChange, onSubmit, onCancel, 
               value={form.contactNumber}
               onChange={handleChange('contactNumber')}
             />
+
+            <Divider sx={{ pt: 1 }} />
+
+            <Box>
+              <Typography variant="subtitle1" gutterBottom>
+                Payment Balance
+              </Typography>
+              <TextField
+                label="Amount Due from Vendor"
+                type="number"
+                fullWidth
+                value={form.balanceDue}
+                onChange={handleChange('balanceDue')}
+                InputProps={{ startAdornment: <InputAdornment position="start">₹</InputAdornment> }}
+                helperText="How much you're owed by this vendor right now"
+              />
+            </Box>
+
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
               <Button type="submit" variant="contained" disabled={submitting} fullWidth>
                 {submitting ? 'Saving...' : submitLabel}

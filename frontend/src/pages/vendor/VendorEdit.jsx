@@ -5,7 +5,7 @@ import Alert from '@mui/material/Alert';
 import api from '../../api/axios';
 import VendorForm from './VendorForm';
 
-const emptyForm = { name: '', location: '', salesman: '', contactNumber: '' };
+const emptyForm = { name: '', location: '', salesman: '', contactNumber: '', balanceDue: '' };
 
 export default function VendorEdit() {
   const { id } = useParams();
@@ -20,8 +20,8 @@ export default function VendorEdit() {
     api
       .get(`/vendors/${id}`)
       .then((res) => {
-        const { name, location, salesman, contactNumber } = res.data.vendor;
-        setForm({ name, location, salesman, contactNumber });
+        const { name, location, salesman, contactNumber, balanceDue } = res.data.vendor;
+        setForm({ name, location, salesman, contactNumber, balanceDue: String(balanceDue ?? 0) });
       })
       .catch((err) => setLoadError(err.response?.data?.message || 'Failed to load vendor'))
       .finally(() => setLoading(false));

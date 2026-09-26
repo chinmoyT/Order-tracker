@@ -11,12 +11,16 @@ function cleanItems(items) {
     const item = (raw.item || '').trim();
     const bags = Number(raw.bags);
     const bagSize = raw.bagSize === '25kg' ? '25kg' : '50kg';
+    const price = raw.price === '' || raw.price === undefined || raw.price === null ? 0 : Number(raw.price);
 
     if (!category || !item || !Number.isFinite(bags) || bags < 0) {
       return { error: 'Each item needs a category, item and a valid bags count' };
     }
+    if (!Number.isFinite(price) || price < 0) {
+      return { error: 'Each item needs a valid price' };
+    }
 
-    cleanedItems.push({ category, item, bags, bagSize });
+    cleanedItems.push({ category, item, bags, bagSize, price });
   }
 
   return { cleanedItems };
@@ -26,13 +30,20 @@ function totalWeightKgOf(cleanedItems) {
   return cleanedItems.reduce((sum, i) => sum + i.bags * (i.bagSize === '25kg' ? 25 : 50), 0);
 }
 
-// Older orders saved before bag size/weight tracking existed don't have totalWeightKg
-// stored — fall back to computing it from their items so every order returns a valid value.
+function totalPriceOf(cleanedItems) {
+  return cleanedItems.reduce((sum, i) => sum + i.bags * (i.price || 0), 0);
+}
+
+// Older orders saved before bag size/weight/price tracking existed don't have
+// totalWeightKg/totalPrice stored — fall back to computing them from their items so
+// every order returns a valid value.
 function withWeightFallback(order) {
-  if (typeof order.totalWeightKg === 'number') {
-    return order;
-  }
-  return { ...order, totalWeightKg: totalWeightKgOf(order.items || []) };
+  const withWeight = typeof order.totalWeightKg === 'number'
+    ? order
+    : { ...order, totalWeightKg: totalWeightKgOf(order.items || []) };
+  return typeof withWeight.totalPrice === 'number'
+    ? withWeight
+    : { ...withWeight, totalPrice: totalPriceOf(order.items || []) };
 }
 
 async function listOrders(req, res) {
@@ -62,6 +73,7 @@ async function createOrder(req, res) {
 
   const totalBags = cleanedItems.reduce((sum, i) => sum + i.bags, 0);
   const totalWeightKg = totalWeightKgOf(cleanedItems);
+  const totalPrice = totalPriceOf(cleanedItems);
 
   const order = await Order.create({
     orderDate,
@@ -71,6 +83,7 @@ async function createOrder(req, res) {
     items: cleanedItems,
     totalBags,
     totalWeightKg,
+    totalPrice,
   });
 
   res.status(201).json({ order });
@@ -94,6 +107,7 @@ async function updateOrder(req, res) {
 
   const totalBags = cleanedItems.reduce((sum, i) => sum + i.bags, 0);
   const totalWeightKg = totalWeightKgOf(cleanedItems);
+  const totalPrice = totalPriceOf(cleanedItems);
 
   const order = await Order.findByIdAndUpdate(
     req.params.id,
@@ -105,6 +119,7 @@ async function updateOrder(req, res) {
       items: cleanedItems,
       totalBags,
       totalWeightKg,
+      totalPrice,
       dispatchedOn: dispatchedOn || null,
       ...(status && { status }),
     },

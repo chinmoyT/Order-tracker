@@ -24,7 +24,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import api from '../../api/axios';
 
-const emptyItem = { category: '', item: '', bags: '', bagSize: '50kg' };
+const emptyItem = { category: '', item: '', bags: '', bagSize: '50kg', price: '' };
 
 const CATEGORY_OPTIONS = [
   'Broiler 1.5',
@@ -55,7 +55,12 @@ export default function OrderForm({
   const [note, setNote] = useState(initialValues.note || '');
   const [items, setItems] = useState(
     initialValues.items?.length
-      ? initialValues.items.map((it) => ({ ...it, bags: String(it.bags), bagSize: it.bagSize || '50kg' }))
+      ? initialValues.items.map((it) => ({
+          ...it,
+          bags: String(it.bags),
+          bagSize: it.bagSize || '50kg',
+          price: it.price !== undefined && it.price !== null ? String(it.price) : '',
+        }))
       : [{ ...emptyItem }]
   );
   const [status, setStatus] = useState(initialValues.status || 'pending');
@@ -74,6 +79,11 @@ export default function OrderForm({
   useEffect(() => {
     setItemCountInput(String(items.length));
   }, [items.length]);
+
+  const selectedVendor = useMemo(
+    () => vendors.find((v) => v.name === vendorName),
+    [vendors, vendorName]
+  );
 
   function handleVendorChange(e) {
     const name = e.target.value;
@@ -126,6 +136,11 @@ export default function OrderForm({
     }, 0);
     return totalKg / 1000;
   }, [items]);
+
+  const totalPrice = useMemo(
+    () => items.reduce((sum, it) => sum + (Number(it.bags) || 0) * (Number(it.price) || 0), 0),
+    [items]
+  );
 
   function renderCategoryField(it, index) {
     return (
@@ -190,6 +205,20 @@ export default function OrderForm({
     );
   }
 
+  function renderPriceField(it, index) {
+    return (
+      <TextField
+        size="small"
+        fullWidth
+        type="number"
+        placeholder="Price/bag"
+        inputProps={{ min: 0, step: '0.01' }}
+        value={it.price}
+        onChange={(e) => updateItem(index, 'price', e.target.value)}
+      />
+    );
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
@@ -213,6 +242,10 @@ export default function OrderForm({
         setError('Every item needs a category, item and a valid number of bags');
         return;
       }
+      if (it.price !== '' && Number(it.price) < 0) {
+        setError('Price cannot be negative');
+        return;
+      }
     }
 
     setSubmitting(true);
@@ -222,7 +255,7 @@ export default function OrderForm({
         vendorName,
         salesmanName,
         note,
-        items: cleanedItems.map((it) => ({ ...it, bags: Number(it.bags) })),
+        items: cleanedItems.map((it) => ({ ...it, bags: Number(it.bags), price: Number(it.price) || 0 })),
         ...(showStatus && { status, dispatchedOn: dispatchedOn || null }),
       });
     } catch (err) {
@@ -303,6 +336,27 @@ export default function OrderForm({
               onChange={(e) => setNote(e.target.value)}
             />
 
+            {vendorName && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  px: 1.5,
+                  py: 1,
+                  borderRadius: 1,
+                  bgcolor: 'action.hover',
+                }}
+              >
+                <Typography variant="body2" color="text.secondary">
+                  Balance Due
+                </Typography>
+                <Typography variant="subtitle2">
+                  ₹{(selectedVendor?.balanceDue || 0).toFixed(2)}
+                </Typography>
+              </Box>
+            )}
+
             {showStatus && (
               <FormControl fullWidth>
                 <InputLabel id="order-status-label">Status</InputLabel>
@@ -382,6 +436,7 @@ export default function OrderForm({
                         <Box sx={{ flex: 1 }}>{renderBagsField(it, index)}</Box>
                         <Box sx={{ flex: 1 }}>{renderBagSizeField(it, index)}</Box>
                       </Stack>
+                      {renderPriceField(it, index)}
                     </Stack>
                   </Paper>
                 ))}
@@ -396,6 +451,11 @@ export default function OrderForm({
                     <Typography variant="subtitle2">Total Weight</Typography>
                     <Typography variant="subtitle2">{totalWeightTonnes.toFixed(2)} tonnes</Typography>
                   </Stack>
+                  <Divider sx={{ my: 1 }} />
+                  <Stack direction="row" justifyContent="space-between">
+                    <Typography variant="subtitle2">Total Price</Typography>
+                    <Typography variant="subtitle2">{totalPrice.toFixed(2)}</Typography>
+                  </Stack>
                 </Paper>
               </Stack>
             ) : (
@@ -407,6 +467,7 @@ export default function OrderForm({
                       <TableCell>Item</TableCell>
                       <TableCell width={120}>Bags</TableCell>
                       <TableCell width={110}>Bag Size</TableCell>
+                      <TableCell width={120}>Price</TableCell>
                       <TableCell width={48} />
                     </TableRow>
                   </TableHead>
@@ -417,6 +478,7 @@ export default function OrderForm({
                         <TableCell>{renderItemField(it, index)}</TableCell>
                         <TableCell>{renderBagsField(it, index)}</TableCell>
                         <TableCell>{renderBagSizeField(it, index)}</TableCell>
+                        <TableCell>{renderPriceField(it, index)}</TableCell>
                         <TableCell>
                           <IconButton
                             size="small"
@@ -429,7 +491,7 @@ export default function OrderForm({
                       </TableRow>
                     ))}
                     <TableRow>
-                      <TableCell colSpan={3} align="right">
+                      <TableCell colSpan={4} align="right">
                         <Typography variant="subtitle2">Total Bags</Typography>
                       </TableCell>
                       <TableCell colSpan={2}>
@@ -437,11 +499,19 @@ export default function OrderForm({
                       </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell colSpan={3} align="right">
+                      <TableCell colSpan={4} align="right">
                         <Typography variant="subtitle2">Total Weight</Typography>
                       </TableCell>
                       <TableCell colSpan={2}>
                         <Typography variant="subtitle2">{totalWeightTonnes.toFixed(2)} tonnes</Typography>
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell colSpan={4} align="right">
+                        <Typography variant="subtitle2">Total Price</Typography>
+                      </TableCell>
+                      <TableCell colSpan={2}>
+                        <Typography variant="subtitle2">{totalPrice.toFixed(2)}</Typography>
                       </TableCell>
                     </TableRow>
                   </TableBody>

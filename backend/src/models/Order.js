@@ -6,6 +6,7 @@ const orderItemSchema = new mongoose.Schema(
     item: { type: String, required: true, trim: true },
     bags: { type: Number, required: true, min: 0 },
     bagSize: { type: String, enum: ['50kg', '25kg'], default: '50kg' },
+    price: { type: Number, required: true, min: 0, default: 0 },
   },
   { _id: false }
 );
@@ -25,6 +26,7 @@ const orderSchema = new mongoose.Schema(
     },
     totalBags: { type: Number, required: true, min: 0 },
     totalWeightKg: { type: Number, required: true, min: 0 },
+    totalPrice: { type: Number, required: true, min: 0, default: 0 },
     status: { type: String, enum: ['pending', 'dispatched'], default: 'pending' },
     dispatchedOn: { type: Date },
   },
