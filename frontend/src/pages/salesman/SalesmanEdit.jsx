@@ -5,7 +5,7 @@ import Alert from '@mui/material/Alert';
 import api from '../../api/axios';
 import SalesmanForm from './SalesmanForm';
 
-const emptyForm = { name: '', areaCovered: '', contactNumber: '', numberOfParties: '' };
+const emptyForm = { name: '', areaCovered: '', contactNumber: '', numberOfParties: '', balance: '' };
 
 export default function SalesmanEdit() {
   const { id } = useParams();
@@ -20,8 +20,8 @@ export default function SalesmanEdit() {
     api
       .get(`/salesmen/${id}`)
       .then((res) => {
-        const { name, areaCovered, contactNumber, numberOfParties } = res.data.salesman;
-        setForm({ name, areaCovered, contactNumber, numberOfParties });
+        const { name, areaCovered, contactNumber, numberOfParties, balance } = res.data.salesman;
+        setForm({ name, areaCovered, contactNumber, numberOfParties, balance: String(balance ?? 0) });
       })
       .catch((err) => setLoadError(err.response?.data?.message || 'Failed to load salesman'))
       .finally(() => setLoading(false));
@@ -59,6 +59,7 @@ export default function SalesmanEdit() {
       error={error}
       submitting={submitting}
       submitLabel="Save Changes"
+      showBalance
     />
   );
 }

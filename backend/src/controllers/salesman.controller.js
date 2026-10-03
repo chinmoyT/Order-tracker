@@ -13,19 +13,33 @@ async function getSalesman(req, res) {
   res.json({ salesman });
 }
 
+function parseBalance(raw) {
+  if (raw === undefined || raw === null || raw === '') {
+    return 0;
+  }
+  const value = Number(raw);
+  return Number.isFinite(value) ? value : 0;
+}
+
 async function createSalesman(req, res) {
-  const { name, areaCovered, contactNumber, numberOfParties } = req.body;
+  const { name, areaCovered, contactNumber, numberOfParties, balance } = req.body;
 
   if (!name || !areaCovered) {
     return res.status(400).json({ message: 'name and areaCovered are required' });
   }
 
-  const salesman = await Salesman.create({ name, areaCovered, contactNumber, numberOfParties });
+  const salesman = await Salesman.create({
+    name,
+    areaCovered,
+    contactNumber,
+    numberOfParties,
+    balance: parseBalance(balance),
+  });
   res.status(201).json({ salesman });
 }
 
 async function updateSalesman(req, res) {
-  const { name, areaCovered, contactNumber, numberOfParties } = req.body;
+  const { name, areaCovered, contactNumber, numberOfParties, balance } = req.body;
 
   if (!name || !areaCovered) {
     return res.status(400).json({ message: 'name and areaCovered are required' });
@@ -33,7 +47,7 @@ async function updateSalesman(req, res) {
 
   const salesman = await Salesman.findByIdAndUpdate(
     req.params.id,
-    { name, areaCovered, contactNumber, numberOfParties },
+    { name, areaCovered, contactNumber, numberOfParties, balance: parseBalance(balance) },
     { new: true, runValidators: true }
   );
 

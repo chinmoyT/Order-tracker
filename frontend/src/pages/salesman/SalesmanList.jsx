@@ -93,13 +93,14 @@ export default function SalesmanList() {
                 <TableCell>Area Covered</TableCell>
                 <TableCell>Contact Number</TableCell>
                 <TableCell>Number of Parties</TableCell>
+                <TableCell align="right">Balance</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {salesmen.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} align="center">
+                  <TableCell colSpan={6} align="center">
                     No salesmen yet.
                   </TableCell>
                 </TableRow>
@@ -110,6 +111,7 @@ export default function SalesmanList() {
                     <TableCell>{salesman.areaCovered}</TableCell>
                     <TableCell>{salesman.contactNumber}</TableCell>
                     <TableCell>{salesman.numberOfParties}</TableCell>
+                    <TableCell align="right">₹{(salesman.balance || 0).toFixed(2)}</TableCell>
                     <TableCell align="right">
                       <Tooltip title="Edit">
                         <IconButton onClick={() => navigate(`/salesmen/${salesman._id}/edit`)}>

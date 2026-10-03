@@ -6,6 +6,7 @@ const salesmanSchema = new mongoose.Schema(
     areaCovered: { type: String, required: true, trim: true },
     contactNumber: { type: String, trim: true },
     numberOfParties: { type: String, trim: true },
+    balance: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

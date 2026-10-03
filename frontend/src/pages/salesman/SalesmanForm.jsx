@@ -5,8 +5,20 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
+import Divider from '@mui/material/Divider';
+import InputAdornment from '@mui/material/InputAdornment';
 
-export default function SalesmanForm({ title, form, onChange, onSubmit, onCancel, error, submitting, submitLabel }) {
+export default function SalesmanForm({
+  title,
+  form,
+  onChange,
+  onSubmit,
+  onCancel,
+  error,
+  submitting,
+  submitLabel,
+  showBalance = false,
+}) {
   function handleChange(field) {
     return (e) => onChange((prev) => ({ ...prev, [field]: e.target.value }));
   }
@@ -48,6 +60,21 @@ export default function SalesmanForm({ title, form, onChange, onSubmit, onCancel
               value={form.numberOfParties}
               onChange={handleChange('numberOfParties')}
             />
+
+            {showBalance && (
+              <>
+                <Divider sx={{ pt: 1 }} />
+                <TextField
+                  label="Balance"
+                  type="number"
+                  fullWidth
+                  value={form.balance}
+                  onChange={handleChange('balance')}
+                  InputProps={{ startAdornment: <InputAdornment position="start">₹</InputAdornment> }}
+                />
+              </>
+            )}
+
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
               <Button type="submit" variant="contained" disabled={submitting} fullWidth>
                 {submitting ? 'Saving...' : submitLabel}
