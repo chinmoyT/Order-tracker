@@ -33,6 +33,7 @@ export default function Dashboard() {
             note: order.note,
             totalBags: order.totalBags,
             totalWeightTonnes: order.totalWeightKg / 1000,
+            items: order.items || [],
           }));
         setCards(pending);
       })
@@ -92,6 +93,15 @@ export default function Dashboard() {
                       {card.totalBags} bags · {card.totalWeightTonnes.toFixed(2)} tonnes
                     </Typography>
                   </Box>
+                  {card.items.length > 0 && (
+                    <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                      {card.items.map((it, index) => (
+                        <Typography key={index} variant="body2" color="text.secondary" noWrap>
+                          {it.category} · {it.item} · {it.bags} bags
+                        </Typography>
+                      ))}
+                    </Box>
+                  )}
                   {card.note && (
                     <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5, mt: 1 }}>
                       <NotesIcon fontSize="small" color="action" sx={{ mt: '2px' }} />
