@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Order = require('../models/Order');
 
 function cleanItems(items) {
@@ -140,4 +141,18 @@ async function deleteOrder(req, res) {
   res.status(204).send();
 }
 
-module.exports = { listOrders, getOrder, createOrder, updateOrder, deleteOrder };
+async function bulkDeleteOrders(req, res) {
+  const { ids } = req.body;
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ message: 'ids must be a non-empty array' });
+  }
+  if (!ids.every((id) => mongoose.isValidObjectId(id))) {
+    return res.status(400).json({ message: 'ids contains an invalid order id' });
+  }
+
+  const result = await Order.deleteMany({ _id: { $in: ids } });
+  res.json({ deletedCount: result.deletedCount });
+}
+
+module.exports = { listOrders, getOrder, createOrder, updateOrder, deleteOrder, bulkDeleteOrders };
